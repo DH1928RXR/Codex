@@ -7,7 +7,7 @@ from typing import Sequence
 
 from .build import BuildIdentity, canonical_json
 from .ir import CandidateAssertion, CorpusChunk
-from .semantic_model import NormalizedAssertion, SemanticNormalizationResult
+from .semantic_model import SemanticNormalizationResult
 from .temporal_model import (
     Chronology,
     CompiledSupersession,
@@ -24,14 +24,17 @@ from .temporal_model import (
 
 
 def _parse_source_time(value: str) -> tuple[bool, float] | None:
-    """Return (timezone-aware, sortable scalar) for source-occurrence chronology."""
+    """Return (timezone-aware, deterministic sortable scalar) for source chronology."""
     try:
         parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
     except ValueError:
         return None
     if parsed.tzinfo is not None:
         return True, parsed.astimezone(timezone.utc).timestamp()
-    return False, parsed.timestamp()
+    # Treat a naive timestamp as a floating civil time only for ordering against
+    # other naive timestamps. Attaching UTC here avoids host-local timezone drift;
+    # compare_source_times never compares this scalar with timezone-aware values.
+    return False, parsed.replace(tzinfo=timezone.utc).timestamp()
 
 
 def compare_source_times(predecessor: Sequence[str], successor: Sequence[str]) -> Chronology:
@@ -96,6 +99,8 @@ class TemporalCompiler:
         if len(assertion_by_id) != len(normalized.assertions):
             raise ValueError("K07 input contains duplicate normalized assertion identities")
         group_by_signature = {g.signature.signature_id: g.group_id for g in normalized.groups}
+        if len(group_by_signature) != len(normalized.groups):
+            raise ValueError("K07 input contains duplicate semantic group signatures")
 
         input_payload = {
             "normalized": normalized,
@@ -186,7 +191,7 @@ class TemporalCompiler:
         def occurrence_sort_key(occurrence: TemporalOccurrence) -> tuple:
             parsed = [_parse_source_time(v) for v in occurrence.source_occurrence_times]
             valid = [v for v in parsed if v is not None]
-            if valid and len({v[0] for v in valid}) == 1:
+            if valid and len(valid) == len(parsed) and len({v[0] for v in valid}) == 1:
                 return (0, min(v[1] for v in valid), occurrence.occurrence_id)
             return (1, occurrence.source_occurrence_times, occurrence.occurrence_id)
 
