@@ -209,9 +209,9 @@ class SemanticNormalizer:
             object_arg = resolve_argument(candidate, ArgumentRole.OBJECT, candidate.object)
             predicate, polarity = self._normalize_predicate(candidate.predicate)
             signature = SemanticSignature(
-                subject,
+                subject.identity,
                 predicate,
-                object_arg,
+                object_arg.identity,
                 polarity,
                 candidate.epistemic_type,
                 candidate.memory_class,
@@ -219,6 +219,8 @@ class SemanticNormalizer:
             normalized.append(NormalizedAssertion(
                 candidate.candidate_id,
                 signature,
+                subject,
+                object_arg,
                 candidate.statement,
                 tuple(sorted(e.evidence_id for e in candidate.evidence)),
                 candidate.temporal,
