@@ -1,4 +1,4 @@
-"""EOR Corpus Compiler K00-K04 primitives."""
+"""EOR Corpus Compiler K00-K05 primitives."""
 
 from .build import BuildIdentity, canonical_json, content_id
 from .entity_model import (
@@ -32,7 +32,22 @@ from .ir import (
     TemporalPrecision,
 )
 from .mentions import EntityMentionCompiler, MentionBucket, MentionIndex, MentionKey, MentionOccurrence
+from .normalizer import SemanticNormalizer, normalize_semantic_text
 from .resolver import EntityResolver
+from .semantic_model import (
+    ArgumentKind,
+    ArgumentResolutionDecision,
+    ArgumentRole,
+    NormalizationDiagnostic,
+    NormalizedAssertion,
+    Polarity,
+    PredicateAlias,
+    PredicateOntology,
+    SemanticArgument,
+    SemanticGroup,
+    SemanticNormalizationResult,
+    SemanticSignature,
+)
 from .validator import CandidateValidator, ValidationResult
 
 __all__ = [
@@ -46,4 +61,8 @@ __all__ = [
     "EntityRegistrySnapshot", "EntityResolutionPolicy", "EntityResolutionResult", "EntityStatus",
     "FullRebuildRequired", "HypothesisDisposition", "MentionBinding", "ResolutionAction",
     "ResolutionDecision", "ResolutionEvidence", "ResolutionProposal", "EntityResolver",
+    "ArgumentKind", "ArgumentResolutionDecision", "ArgumentRole", "NormalizationDiagnostic",
+    "NormalizedAssertion", "Polarity", "PredicateAlias", "PredicateOntology", "SemanticArgument",
+    "SemanticGroup", "SemanticNormalizationResult", "SemanticSignature", "SemanticNormalizer",
+    "normalize_semantic_text",
 ]
