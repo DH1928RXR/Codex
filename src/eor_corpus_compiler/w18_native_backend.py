@@ -12,6 +12,7 @@ import json
 from dataclasses import dataclass
 from typing import Any, Sequence
 
+from .extractor import PROMPT_CONTRACT
 from .ir import (
     CandidateAssertion,
     CorpusChunk,
@@ -247,6 +248,14 @@ class W18NativeExtractionBackend:
 
     worker_result: dict[str, Any]
     lineage: ModelLineage
+
+    def __post_init__(self) -> None:
+        if self.lineage.role != "extractor":
+            raise ValueError("lineage role must be extractor")
+        if self.lineage.prompt_contract != PROMPT_CONTRACT:
+            raise ValueError(f"lineage prompt_contract must equal {PROMPT_CONTRACT}")
+        if not (self.lineage.invocation_id or "").strip():
+            raise ValueError("lineage invocation_id is required")
 
     @property
     def provider(self) -> str:
