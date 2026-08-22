@@ -11,8 +11,10 @@ This workstream is the **K Track**. The C Track is reserved for Persistent Contr
 - **K02 — Candidate validator / quarantine v0**: independently validates evidence containment and quarantines provenance-invalid candidates.
 - **K03 — Entity mention compiler v0**: builds deterministic mention indexes without prematurely merging entity identities.
 - **K04 — Global entity resolution v0**: stable entity identities, verified-alias reuse, redirects, keep-distinct constraints, auditable decision journal/retractions, indexed fuzzy candidate generation, and soft multi-model proposals that never silently merge identities.
+- **K05 — Semantic normalization / exact dedup v0**: resolves verified entity arguments while preserving literals, separates polarity, preserves epistemic type, supports versioned predicate aliases, and groups exact semantic equivalence without losing individual source occurrences or their temporal anchors.
+- **K06 — Typed relation proposal compiler v0**: derives only structurally entailed polarity opposition automatically; semantic relations such as supports/refines/contradicts/supersedes remain scored provenance-bound proposals for downstream review.
 
-The compiler is designed to bridge the existing `personal_corpus_v04.duckdb` corpus to the existing M02 personal-memory staging/promotion machinery. Extractors emit staging IR only; later passes perform normalization, temporal/supersession compilation, contradiction handling, synthesis, review routing, and M02 bundle construction.
+The compiler is designed to bridge the existing `personal_corpus_v04.duckdb` corpus to the existing M02 personal-memory staging/promotion machinery. Extractors emit staging IR only; later passes perform temporal/supersession compilation, contradiction handling, synthesis, review routing, and M02 bundle construction.
 
 ## Invariants
 
@@ -25,6 +27,8 @@ The compiler is designed to bridge the existing `personal_corpus_v04.duckdb` cor
 7. Soft similarity/model proposals remain hypotheses until governed resolution.
 8. Existing M02/M03 canonical storage and recall are reused rather than reimplemented.
 9. Decision retractions that would split an already-projected identity require deterministic full replay rather than unsafe in-place mutation.
+10. Semantic deduplication never deletes or fuses source occurrences; temporal history remains available to later passes.
+11. K06 structural polarity opposition is an internal compiler relation, not an automatic canonical contradiction claim.
 
 ## Roadmap
 
@@ -33,8 +37,8 @@ The compiler is designed to bridge the existing `personal_corpus_v04.duckdb` cor
 - K02 Candidate validator / quarantine — implemented v0.1
 - K03 Entity mention compiler — implemented v0.1
 - K04 Entity resolution — implemented v0.1; focused resolver harness 10/10 PASS; repository CI workflow installed
-- K05 Claim / decision / goal normalization and semantic deduplication
-- K06 Relation compiler
+- K05 Claim / decision / goal normalization and semantic deduplication — implemented v0.1; repository test cases added
+- K06 Relation compiler — implemented v0.1; repository test cases added
 - K07 Temporal / supersession compiler
 - K08 Contradiction compiler
 - K09 Entity/project/concept synthesis
@@ -42,3 +46,5 @@ The compiler is designed to bridge the existing `personal_corpus_v04.duckdb` cor
 - K11 IR → M02 staging adapter
 - K12 Incremental scheduler / dependency graph
 - K13 Full-corpus benchmark and promotion run
+
+Repository-level CI was installed, but the connected interface has not surfaced a completed push workflow result. Do not treat the repository suite as CI-verified until that run is observed.
