@@ -144,8 +144,8 @@ def test_incomparable_latest_observations_are_preserved_as_set():
 
 
 def test_relation_conflict_and_supersession_refs_are_projected():
-    first = assertion("candidate:1")
-    second = assertion("candidate:2")
+    first = assertion("candidate:1", object_value="EOR")
+    second = assertion("candidate:2", object_value="MCP")
     g1, g2 = first[1], second[1]
     relation = CompiledRelation(
         RelationKey(g1.group_id, g2.group_id, RelationType.REFINES),
