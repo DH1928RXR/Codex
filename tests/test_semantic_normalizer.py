@@ -81,6 +81,16 @@ def test_repeated_semantic_occurrences_group_without_losing_occurrences():
     assert {a.temporal.start for a in result.assertions} == {"2026-08-21", "2026-08-22"}
 
 
+def test_display_and_resolution_basis_do_not_change_semantic_identity():
+    one = candidate("1", mention_subject=True)
+    two = candidate("2", mention_subject=False)
+    registry = registry_for(one, two)
+    result = SemanticNormalizer().compile((one, two), registry)
+    assert len(result.groups) == 1
+    bases = {a.subject_argument.basis for a in result.assertions}
+    assert bases == {"candidate_entity_mention", "verified_entity_alias"}
+
+
 def test_epistemic_type_prevents_false_deduplication():
     one = candidate("1", epistemic_type=EpistemicType.BELIEF)
     two = candidate("2", epistemic_type=EpistemicType.FACT)
@@ -111,7 +121,7 @@ def test_unresolved_argument_stays_literal_and_is_diagnosed():
     item = candidate("1", object_="a future unnamed project", mention_object=False)
     registry = registry_for(item)
     result = SemanticNormalizer().compile((item,), registry)
-    assert result.assertions[0].signature.object.kind.value == "literal"
+    assert result.assertions[0].object_argument.kind.value == "literal"
     assert any(d.code == "unresolved_literal_argument" and d.role == ArgumentRole.OBJECT for d in result.diagnostics)
 
 
@@ -128,5 +138,5 @@ def test_explicit_argument_decision_can_resolve_nonlexical_coreference():
         (ResolutionEvidence("coreference_review", "review:1", 1.0, "my wife refers to Moa", "human"),),
     )
     result = SemanticNormalizer().compile((item,), registry, argument_decisions=(decision,))
-    assert result.assertions[0].signature.object.value == moa_entity.entity_id
-    assert result.assertions[0].signature.object.basis == "explicit_argument_decision"
+    assert result.assertions[0].object_argument.value == moa_entity.entity_id
+    assert result.assertions[0].object_argument.basis == "explicit_argument_decision"
