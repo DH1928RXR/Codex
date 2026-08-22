@@ -1,4 +1,4 @@
-"""EOR Corpus Compiler K00-K06 primitives."""
+"""EOR Corpus Compiler K00-K07 primitives."""
 
 from .build import BuildIdentity, canonical_json, content_id
 from .entity_model import (
@@ -60,6 +60,20 @@ from .semantic_model import (
     SemanticNormalizationResult,
     SemanticSignature,
 )
+from .temporal import TemporalCompiler, compare_source_times
+from .temporal_model import (
+    Chronology,
+    CompiledSupersession,
+    StateSlotKey,
+    SupersessionDisposition,
+    SupersessionEvidence,
+    SupersessionProposal,
+    TemporalCompilationResult,
+    TemporalDiagnostic,
+    TemporalOccurrence,
+    TemporalPolicy,
+    TemporalStateSlot,
+)
 from .validator import CandidateValidator, ValidationResult
 
 __all__ = [
@@ -79,4 +93,7 @@ __all__ = [
     "SemanticNormalizer", "normalize_semantic_text",
     "CompiledRelation", "RelationCompilationResult", "RelationDisposition", "RelationEvidence",
     "RelationKey", "RelationPolicy", "RelationProposal", "RelationType", "RelationCompiler",
+    "Chronology", "CompiledSupersession", "StateSlotKey", "SupersessionDisposition",
+    "SupersessionEvidence", "SupersessionProposal", "TemporalCompilationResult", "TemporalDiagnostic",
+    "TemporalOccurrence", "TemporalPolicy", "TemporalStateSlot", "TemporalCompiler", "compare_source_times",
 ]
