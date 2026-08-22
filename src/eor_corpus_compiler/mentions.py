@@ -46,7 +46,7 @@ class MentionIndex:
 
 
 class EntityMentionCompiler:
-    """C03 deterministic mention index. Does not merge identities."""
+    """K03 deterministic mention index. Does not merge identities."""
 
     def __init__(self, *, compiler_version: str = "0.1.0"):
         self.compiler_version = compiler_version
@@ -58,7 +58,7 @@ class EntityMentionCompiler:
     def compile(self, candidates: Sequence[CandidateAssertion]) -> MentionIndex:
         input_hash = sha256(canonical_json(candidates).encode("utf-8")).hexdigest()
         config_hash = sha256(canonical_json({"normalizer": "casefold_whitespace_v0"}).encode("utf-8")).hexdigest()
-        build = BuildIdentity("C03.mentions", self.compiler_version, "eor.corpus_entity_mentions.v0", config_hash, input_hash)
+        build = BuildIdentity("K03.mentions", self.compiler_version, "eor.corpus_entity_mentions.v0", config_hash, input_hash)
         grouped = {}; hints = {}
         for candidate in sorted(candidates, key=lambda c: c.candidate_id):
             for mention in candidate.entity_mentions:
