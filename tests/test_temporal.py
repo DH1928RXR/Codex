@@ -19,7 +19,7 @@ from eor_corpus_compiler.semantic_model import (
     SemanticNormalizationResult,
     SemanticSignature,
 )
-from eor_corpus_compiler.temporal import TemporalCompiler
+from eor_corpus_compiler.temporal import TemporalCompiler, compare_source_times
 from eor_corpus_compiler.temporal_model import (
     Chronology,
     SupersessionDisposition,
@@ -111,9 +111,21 @@ def fixture(
 
 def normalized(*items):
     assertions = tuple(item[2] for item in items)
-    groups = tuple(item[3] for item in items)
+    by_group_id = {}
+    for item in items:
+        group = item[3]
+        existing = by_group_id.get(group.group_id)
+        if existing is None:
+            by_group_id[group.group_id] = group
+        else:
+            by_group_id[group.group_id] = SemanticGroup(
+                group.signature,
+                tuple(sorted(set(existing.normalized_assertion_ids + group.normalized_assertion_ids))),
+                tuple(sorted(set(existing.candidate_ids + group.candidate_ids))),
+                min(existing.representative_candidate_id, group.representative_candidate_id),
+            )
     build = BuildIdentity("test", "0", "test", "0" * 64, "1" * 64)
-    return SemanticNormalizationResult(build, assertions, groups, ())
+    return SemanticNormalizationResult(build, assertions, tuple(by_group_id.values()), ())
 
 
 def evidence(score=0.9):
@@ -199,3 +211,7 @@ def test_proxy_effective_time_is_preserved_and_diagnosed():
     out = TemporalCompiler().compile(normalized(item), (item[0],), (item[1],))
     assert out.occurrences[0].effective_anchor.is_proxy is True
     assert any(d.code == "effective_time_is_proxy" for d in out.diagnostics)
+
+
+def test_naive_source_chronology_is_deterministic_and_orderable():
+    assert compare_source_times(("2026-08-21T10:00:00",), ("2026-08-22T10:00:00",)) == Chronology.BEFORE
