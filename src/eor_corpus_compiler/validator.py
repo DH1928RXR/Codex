@@ -83,6 +83,8 @@ class CandidateValidator:
                     local.append(Diagnostic("conversation_mismatch", DiagnosticSeverity.ERROR, "evidence conversation does not match cited chunk", cid, evidence.evidence_id))
                 if evidence.source_id != chunk.source_id:
                     local.append(Diagnostic("source_mismatch", DiagnosticSeverity.ERROR, "evidence source does not match cited chunk", cid, evidence.evidence_id))
+                if evidence.speaker is not None and evidence.speaker != chunk.speaker:
+                    local.append(Diagnostic("speaker_mismatch", DiagnosticSeverity.ERROR, "evidence speaker does not match cited chunk", cid, evidence.evidence_id))
             if candidate.temporal.is_proxy:
                 local.append(Diagnostic("proxy_time", DiagnosticSeverity.WARNING, "candidate uses explicit proxy time", cid))
             if candidate.extractor_confidence < 0.5:
