@@ -1,4 +1,4 @@
-"""EOR Corpus Compiler K00-K08 primitives."""
+"""EOR Corpus Compiler K00-K09 primitives."""
 
 from .build import BuildIdentity, canonical_json, content_id
 from .conflict_model import (
@@ -43,6 +43,13 @@ from .ir import (
 )
 from .mentions import EntityMentionCompiler, MentionBucket, MentionIndex, MentionKey, MentionOccurrence
 from .normalizer import SemanticNormalizer, normalize_semantic_text
+from .projection_model import (
+    EntityProjectionCard,
+    ProjectionDiagnostic,
+    ProjectionRole,
+    PropositionProjection,
+    SynthesisProjectionResult,
+)
 from .relation_model import (
     CompiledRelation,
     RelationCompilationResult,
@@ -70,6 +77,7 @@ from .semantic_model import (
     SemanticNormalizationResult,
     SemanticSignature,
 )
+from .synthesis import SynthesisProjector
 from .temporal import TemporalCompiler, compare_source_times
 from .temporal_model import (
     Chronology,
@@ -108,4 +116,6 @@ __all__ = [
     "TemporalOccurrence", "TemporalPolicy", "TemporalStateSlot", "TemporalCompiler", "compare_source_times",
     "ConflictCase", "ConflictCompilationResult", "ConflictDiagnostic", "ConflictDisposition", "ConflictKind",
     "ConflictPolicy", "EffectiveRelation", "ConflictCompiler", "compare_effective_anchors", "effective_interval",
+    "EntityProjectionCard", "ProjectionDiagnostic", "ProjectionRole", "PropositionProjection",
+    "SynthesisProjectionResult", "SynthesisProjector",
 ]
