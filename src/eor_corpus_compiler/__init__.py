@@ -1,4 +1,4 @@
-"""EOR Corpus Compiler K00-K11 primitives."""
+"""EOR Corpus Compiler K00-K12 primitives."""
 
 from .build import BuildIdentity, canonical_json, content_id
 from .conflict_model import (
@@ -88,6 +88,18 @@ from .review_model import (
     ReviewQueue,
     ReviewResponse,
 )
+from .scheduler import CorpusTaskGraphBuilder, IncrementalScheduler, task_fingerprint
+from .scheduler_model import (
+    BuildPlan,
+    BuildWave,
+    CacheEntry,
+    CacheStatus,
+    PlanDisposition,
+    PlannedTask,
+    TaskGraphError,
+    TaskKey,
+    TaskSpec,
+)
 from .semantic_model import (
     ArgumentKind,
     ArgumentResolutionDecision,
@@ -150,4 +162,7 @@ __all__ = [
     "M02AdapterDiagnostic", "M02CandidateDisposition", "M02CapabilityDescriptor", "M02Eligibility",
     "M02EvidenceInput", "M02PreparationResult", "M02RecordInput", "M02RelationInput",
     "M02StagingArtifact", "VerifiedM02StagingBackend", "M02StagingAdapter",
+    "BuildPlan", "BuildWave", "CacheEntry", "CacheStatus", "PlanDisposition", "PlannedTask",
+    "TaskGraphError", "TaskKey", "TaskSpec", "IncrementalScheduler", "CorpusTaskGraphBuilder",
+    "task_fingerprint",
 ]
