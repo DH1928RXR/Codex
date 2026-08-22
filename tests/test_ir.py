@@ -23,8 +23,7 @@ def test_evidence_id_changes_with_exact_text():
 
 def test_temporal_proxy_requires_reason():
     import pytest
-    with pytest.raises(ValueError):
-        TemporalAnchor("2026-08-22", None, TemporalPrecision.DAY, "America/Toronto", is_proxy=True)
+    with pytest.raises(ValueError): TemporalAnchor("2026-08-22", None, TemporalPrecision.DAY, "America/Toronto", is_proxy=True)
 
 
 def test_compiler_rejects_out_of_input_evidence():
@@ -45,3 +44,25 @@ def test_compiler_build_identity_is_repeatable():
     one = compiler.compile([chunk]); two = compiler.compile([chunk])
     assert one.build.build_id == two.build.build_id
     assert one.output_hash == two.output_hash
+
+
+def test_c02_accepts_exact_evidence_and_quarantines_mismatch():
+    from eor_corpus_compiler.validator import CandidateValidator
+    good_chunk = CorpusChunk("c1", "s1", "conv1", "title", "Dan", "2026-08-22T09:45:00-04:00", "I decided to build the corpus compiler.")
+    good = sample_candidate("c1")
+    result = CandidateValidator().validate([good_chunk], [good])
+    assert len(result.accepted) == 1
+    assert len(result.quarantined) == 0
+    bad_chunk = CorpusChunk("c1", "s1", "conv1", "title", "Dan", "2026-08-22T09:45:00-04:00", "different text")
+    result2 = CandidateValidator().validate([bad_chunk], [good])
+    assert len(result2.accepted) == 0
+    assert any(d.code == "evidence_text_mismatch" for d in result2.diagnostics)
+
+
+def test_c03_groups_mentions_without_resolving_entities():
+    from eor_corpus_compiler.mentions import EntityMentionCompiler
+    a = sample_candidate("c1")
+    idx = EntityMentionCompiler().compile([a])
+    assert len(idx.buckets) == 1
+    assert idx.buckets[0].key.normalized_text == "corpus compiler"
+    assert idx.buckets[0].canonical_hints == ("EOR Corpus Compiler",)
