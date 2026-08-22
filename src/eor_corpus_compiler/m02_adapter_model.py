@@ -6,7 +6,7 @@ from hashlib import sha256
 from typing import Protocol, Sequence, runtime_checkable
 
 from .build import BuildIdentity, canonical_json, content_id
-from .ir import CandidateAssertion, CorpusChunk, TemporalAnchor
+from .ir import TemporalAnchor
 
 
 class M02Eligibility(str, Enum):
@@ -15,7 +15,6 @@ class M02Eligibility(str, Enum):
     BLOCKED_SOURCE_EXACTNESS = "blocked_source_exactness"
     BLOCKED_SOURCE_MODE = "blocked_source_mode"
     BLOCKED_TEMPORAL_CONTRACT = "blocked_temporal_contract"
-    BLOCKED_ADJUDICATION = "blocked_adjudication"
 
 
 @dataclass(frozen=True, slots=True)
@@ -28,6 +27,7 @@ class M02CapabilityDescriptor:
     supported_temporal_bases: tuple[str, ...]
     can_build_pending_review_bundle: bool
     can_validate_bundle: bool
+    preserves_effective_anchor: bool = False
     exposes_promotion: bool = False
 
     def __post_init__(self) -> None:
@@ -35,6 +35,9 @@ class M02CapabilityDescriptor:
             raise ValueError("M02 capability identity fields must be non-empty")
         if self.exposes_promotion:
             raise ValueError("K11 backends must not expose canonical promotion authority")
+        object.__setattr__(self, "supported_source_types", tuple(sorted(set(self.supported_source_types))))
+        object.__setattr__(self, "supported_relation_types", tuple(sorted(set(self.supported_relation_types))))
+        object.__setattr__(self, "supported_temporal_bases", tuple(sorted(set(self.supported_temporal_bases))))
 
     @property
     def capability_id(self) -> str:
@@ -63,32 +66,6 @@ class M02EvidenceInput:
 
 
 @dataclass(frozen=True, slots=True)
-class M02RecordInput:
-    candidate_id: str
-    memory_class: str
-    epistemic_type: str
-    statement: str
-    subject: str
-    predicate: str
-    object: str
-    source_origin_probability: float
-    extractor_confidence: float
-    importance: float
-    durability: float
-    tags: tuple[str, ...]
-    evidence: tuple[M02EvidenceInput, ...]
-    source_occurrence_time: str | None
-    effective_anchor: TemporalAnchor
-    relation_inputs: tuple["M02RelationInput", ...] = ()
-
-    def __post_init__(self) -> None:
-        if not self.candidate_id.strip() or not self.statement.strip():
-            raise ValueError("M02 record input identity/statement must be non-empty")
-        if not self.evidence:
-            raise ValueError("M02 record input requires exact evidence")
-
-
-@dataclass(frozen=True, slots=True)
 class M02RelationInput:
     source_candidate_id: str
     target_candidate_id: str
@@ -109,6 +86,36 @@ class M02RelationInput:
 
 
 @dataclass(frozen=True, slots=True)
+class M02RecordInput:
+    candidate_id: str
+    memory_class: str
+    epistemic_type: str
+    statement: str
+    subject: str
+    predicate: str
+    object: str
+    source_origin_probability: float
+    extractor_confidence: float
+    importance: float
+    durability: float
+    tags: tuple[str, ...]
+    evidence: tuple[M02EvidenceInput, ...]
+    source_occurrence_times: tuple[str, ...]
+    temporal_basis: str
+    effective_anchor: TemporalAnchor
+    relation_inputs: tuple[M02RelationInput, ...] = ()
+
+    def __post_init__(self) -> None:
+        if not self.candidate_id.strip() or not self.statement.strip() or not self.temporal_basis.strip():
+            raise ValueError("M02 record input identity/statement/temporal basis must be non-empty")
+        if not self.evidence:
+            raise ValueError("M02 record input requires exact evidence")
+        object.__setattr__(self, "tags", tuple(sorted(set(self.tags))))
+        object.__setattr__(self, "source_occurrence_times", tuple(sorted(set(self.source_occurrence_times))))
+        object.__setattr__(self, "relation_inputs", tuple(sorted(set(self.relation_inputs), key=lambda r: r.relation_input_id)))
+
+
+@dataclass(frozen=True, slots=True)
 class M02CandidateDisposition:
     candidate_id: str
     eligibility: M02Eligibility
@@ -121,12 +128,24 @@ class M02CandidateDisposition:
 
 
 @dataclass(frozen=True, slots=True)
+class M02AdapterDiagnostic:
+    code: str
+    message: str
+    source_ref: str | None = None
+
+    @property
+    def diagnostic_id(self) -> str:
+        return content_id("m02diagv0", self)
+
+
+@dataclass(frozen=True, slots=True)
 class M02PreparationResult:
     build: BuildIdentity
     capability_id: str
     eligible_records: tuple[M02RecordInput, ...]
     candidate_dispositions: tuple[M02CandidateDisposition, ...]
     eligible_relations: tuple[M02RelationInput, ...]
+    diagnostics: tuple[M02AdapterDiagnostic, ...]
 
     @property
     def output_hash(self) -> str:
@@ -135,6 +154,7 @@ class M02PreparationResult:
             "eligible_records": self.eligible_records,
             "candidate_dispositions": self.candidate_dispositions,
             "eligible_relations": self.eligible_relations,
+            "diagnostics": self.diagnostics,
         }
         return sha256(canonical_json(payload).encode("utf-8")).hexdigest()
 
