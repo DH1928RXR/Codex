@@ -48,7 +48,7 @@ class ValidationResult:
 
 
 class CandidateValidator:
-    """C02 deterministic validator. Never mutates candidates or canonical stores."""
+    """K02 deterministic validator. Never mutates candidates or canonical stores."""
 
     def __init__(self, *, compiler_version: str = "0.1.0", min_source_origin_probability: float = 0.5):
         if not 0.0 <= min_source_origin_probability <= 1.0:
@@ -60,7 +60,7 @@ class CandidateValidator:
         chunk_by_id = {c.chunk_id: c for c in chunks}
         input_hash = sha256(canonical_json({"chunks": chunks, "candidates": candidates}).encode("utf-8")).hexdigest()
         config_hash = sha256(canonical_json({"min_source_origin_probability": self.min_source_origin_probability}).encode("utf-8")).hexdigest()
-        build = BuildIdentity("C02.validate", self.compiler_version, "eor.corpus_candidate_validation.v0", config_hash, input_hash)
+        build = BuildIdentity("K02.validate", self.compiler_version, "eor.corpus_candidate_validation.v0", config_hash, input_hash)
         accepted = []; quarantined = []; diagnostics = []; seen = set()
         for candidate in sorted(candidates, key=lambda c: c.candidate_id):
             local = []; cid = candidate.candidate_id
