@@ -1,4 +1,3 @@
-import copy
 import json
 
 import pytest
@@ -21,15 +20,17 @@ def chunk(*, text="I decided to build the corpus compiler.", chunk_id="c1"):
     )
 
 
-def lineage():
-    return ModelLineage(
-        provider="eor-trusted-runtime",
-        model="bounded-worker",
-        role="extractor",
-        prompt_contract="eor.corpus_extraction_prompt.v0",
-        prompt_version="0",
-        invocation_id="w18-invocation-001",
-    )
+def lineage(**overrides):
+    values = {
+        "provider": "eor-trusted-runtime",
+        "model": "bounded-worker",
+        "role": "extractor",
+        "prompt_contract": "eor.corpus_extraction_prompt.v0",
+        "prompt_version": "0",
+        "invocation_id": "w18-invocation-001",
+    }
+    values.update(overrides)
+    return ModelLineage(**values)
 
 
 def candidate_payload(*, chunk_id="c1", exact_text="I decided to build the corpus compiler."):
@@ -183,3 +184,18 @@ def test_backend_provider_and_model_come_from_trusted_lineage():
     backend = W18NativeExtractionBackend(native(), lineage())
     assert backend.provider == "eor-trusted-runtime"
     assert backend.model == "bounded-worker"
+
+
+def test_trusted_lineage_requires_specific_invocation_identity():
+    with pytest.raises(ValueError, match="invocation_id is required"):
+        W18NativeExtractionBackend(native(), lineage(invocation_id=None))
+
+
+def test_trusted_lineage_role_is_exact_extractor():
+    with pytest.raises(ValueError, match="role must be extractor"):
+        W18NativeExtractionBackend(native(), lineage(role="analyst"))
+
+
+def test_trusted_lineage_uses_frozen_k_extraction_prompt_contract():
+    with pytest.raises(ValueError, match="prompt_contract must equal"):
+        W18NativeExtractionBackend(native(), lineage(prompt_contract="different.contract"))
