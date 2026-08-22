@@ -25,6 +25,16 @@ class Polarity(str, Enum):
 
 
 @dataclass(frozen=True, slots=True)
+class SemanticArgumentIdentity:
+    kind: ArgumentKind
+    value: str
+
+    def __post_init__(self) -> None:
+        if not self.value.strip():
+            raise ValueError("semantic argument identity value must be non-empty")
+
+
+@dataclass(frozen=True, slots=True)
 class SemanticArgument:
     kind: ArgumentKind
     value: str
@@ -34,6 +44,10 @@ class SemanticArgument:
     def __post_init__(self) -> None:
         if not self.value.strip() or not self.display.strip() or not self.basis.strip():
             raise ValueError("semantic argument fields must be non-empty")
+
+    @property
+    def identity(self) -> SemanticArgumentIdentity:
+        return SemanticArgumentIdentity(self.kind, self.value)
 
 
 @dataclass(frozen=True, slots=True)
@@ -68,9 +82,9 @@ class ArgumentResolutionDecision:
 
 @dataclass(frozen=True, slots=True)
 class SemanticSignature:
-    subject: SemanticArgument
+    subject: SemanticArgumentIdentity
     predicate: str
-    object: SemanticArgument
+    object: SemanticArgumentIdentity
     polarity: Polarity
     epistemic_type: EpistemicType
     memory_class: MemoryClass
@@ -84,6 +98,8 @@ class SemanticSignature:
 class NormalizedAssertion:
     candidate_id: str
     signature: SemanticSignature
+    subject_argument: SemanticArgument
+    object_argument: SemanticArgument
     statement: str
     evidence_ids: tuple[str, ...]
     temporal: TemporalAnchor
