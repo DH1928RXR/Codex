@@ -10,8 +10,9 @@ This workstream is the **K Track**. The C Track is reserved for Persistent Contr
 - **K01 — Extraction compiler v0**: backend-neutral extraction boundary with deterministic input/build/output identities and post-extraction provenance validation.
 - **K02 — Candidate validator / quarantine v0**: independently validates evidence containment and quarantines provenance-invalid candidates.
 - **K03 — Entity mention compiler v0**: builds deterministic mention indexes without prematurely merging entity identities.
+- **K04 — Global entity resolution v0**: stable entity identities, verified-alias reuse, redirects, keep-distinct constraints, auditable decision journal/retractions, indexed fuzzy candidate generation, and soft multi-model proposals that never silently merge identities.
 
-The compiler is designed to bridge the existing `personal_corpus_v04.duckdb` corpus to the existing M02 personal-memory staging/promotion machinery. Extractors emit staging IR only; later passes perform entity resolution, normalization, temporal/supersession compilation, contradiction handling, synthesis, review routing, and M02 bundle construction.
+The compiler is designed to bridge the existing `personal_corpus_v04.duckdb` corpus to the existing M02 personal-memory staging/promotion machinery. Extractors emit staging IR only; later passes perform normalization, temporal/supersession compilation, contradiction handling, synthesis, review routing, and M02 bundle construction.
 
 ## Invariants
 
@@ -21,8 +22,9 @@ The compiler is designed to bridge the existing `personal_corpus_v04.duckdb` cor
 4. Temporal proxy time is explicit and cannot silently masquerade as occurrence time.
 5. IDs and build receipts are content-derived from canonical JSON.
 6. Candidate evidence may only cite compiler input chunks.
-7. Global alias resolution and inter-record relationships belong to later compiler passes.
+7. Soft similarity/model proposals remain hypotheses until governed resolution.
 8. Existing M02/M03 canonical storage and recall are reused rather than reimplemented.
+9. Decision retractions that would split an already-projected identity require deterministic full replay rather than unsafe in-place mutation.
 
 ## Roadmap
 
@@ -30,8 +32,8 @@ The compiler is designed to bridge the existing `personal_corpus_v04.duckdb` cor
 - K01 Candidate extraction — implemented deterministic shell v0.1
 - K02 Candidate validator / quarantine — implemented v0.1
 - K03 Entity mention compiler — implemented v0.1
-- K04 Entity resolution
-- K05 Claim / decision / goal normalization
+- K04 Entity resolution — implemented v0.1; focused resolver harness 10/10 PASS; repository CI workflow installed
+- K05 Claim / decision / goal normalization and semantic deduplication
 - K06 Relation compiler
 - K07 Temporal / supersession compiler
 - K08 Contradiction compiler
