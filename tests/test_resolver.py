@@ -16,10 +16,10 @@ from eor_corpus_compiler.mentions import MentionBucket, MentionIndex, MentionKey
 from eor_corpus_compiler.resolver import EntityResolver
 
 
-def bucket(name: str, entity_type: str = "person", hints=()) -> MentionBucket:
+def bucket(name: str, entity_type: str | None = "person", hints=()) -> MentionBucket:
     key = MentionKey(name.casefold(), entity_type)
     mention = EntityMention(name, entity_type, f"evidence:{name}", hints[0] if hints else None, 0.9)
-    return MentionBucket(key, (MentionOccurrence(f"candidate:{name}", mention),), tuple(hints))
+    return MentionBucket(key, (MentionOccurrence(f"candidate:{name}:{entity_type}", mention),), tuple(hints))
 
 
 def index(*buckets: MentionBucket) -> MentionIndex:
@@ -38,10 +38,13 @@ def test_provisional_entity_identity_is_stable():
     assert one.output_hash == two.output_hash
 
 
-def test_prior_verified_alias_is_reused():
-    first = EntityResolver().compile(index(bucket("Moa")))
-    second = EntityResolver().compile(index(bucket("Moa")), prior=first.registry)
-    assert second.registry.bindings[0].entity_id == first.registry.entities[0].entity_id
+def test_prior_verified_alias_is_reused_for_new_compatible_mention_key():
+    first = EntityResolver().compile(index(bucket("Moa", "person")))
+    second = EntityResolver().compile(index(bucket("Moa", None)), prior=first.registry)
+    new_key = bucket("Moa", None).key.mention_key_id
+    binding = next(b for b in second.registry.bindings if b.mention_key_id == new_key)
+    assert binding.entity_id == first.registry.entities[0].entity_id
+    assert binding.basis == "verified_alias"
 
 
 def test_canonical_hint_generates_hypothesis_without_silent_merge():
@@ -63,7 +66,9 @@ def test_explicit_link_binds_mention_to_existing_entity():
         evidence(),
     )
     new = EntityResolver().compile(index(new_bucket), prior=base.registry, decisions=(decision,))
-    assert new.registry.bindings[-1].entity_id == target
+    binding = next(b for b in new.registry.bindings if b.mention_key_id == new_bucket.key.mention_key_id)
+    assert binding.entity_id == target
+    assert binding.decision_id == decision.decision_id
     assert decision.decision_id in new.registry.applied_decision_ids
 
 
