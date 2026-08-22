@@ -1,4 +1,4 @@
-"""EOR Corpus Compiler K00-K09 primitives."""
+"""EOR Corpus Compiler K00-K10 primitives."""
 
 from .build import BuildIdentity, canonical_json, content_id
 from .conflict_model import (
@@ -62,6 +62,19 @@ from .relation_model import (
 )
 from .relations import RelationCompiler
 from .resolver import EntityResolver
+from .review import ReviewAdjudicator, ReviewRouter
+from .review_model import (
+    AdjudicationDisposition,
+    AdjudicationRecord,
+    AdjudicationResult,
+    ReviewAuthority,
+    ReviewDecision,
+    ReviewItem,
+    ReviewKind,
+    ReviewPolicy,
+    ReviewQueue,
+    ReviewResponse,
+)
 from .semantic_model import (
     ArgumentKind,
     ArgumentResolutionDecision,
@@ -118,4 +131,7 @@ __all__ = [
     "ConflictPolicy", "EffectiveRelation", "ConflictCompiler", "compare_effective_anchors", "effective_interval",
     "EntityProjectionCard", "ProjectionDiagnostic", "ProjectionRole", "PropositionProjection",
     "SynthesisProjectionResult", "SynthesisProjector",
+    "AdjudicationDisposition", "AdjudicationRecord", "AdjudicationResult", "ReviewAuthority",
+    "ReviewDecision", "ReviewItem", "ReviewKind", "ReviewPolicy", "ReviewQueue", "ReviewResponse",
+    "ReviewRouter", "ReviewAdjudicator",
 ]
