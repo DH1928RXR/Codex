@@ -1,5 +1,14 @@
-"""EOR Corpus Compiler K00-K12 primitives."""
+"""EOR Corpus Compiler K00-K13 primitives."""
 
+from .benchmark import BenchmarkAuditor, CorpusScaleProbe
+from .benchmark_model import (
+    BenchmarkFinding,
+    BenchmarkMetrics,
+    BenchmarkReport,
+    BenchmarkStatus,
+    CorpusScaleReport,
+    QualityThresholds,
+)
 from .build import BuildIdentity, canonical_json, content_id
 from .conflict_model import (
     ConflictCase,
@@ -133,6 +142,8 @@ from .temporal_model import (
 from .validator import CandidateValidator, ValidationResult
 
 __all__ = [
+    "BenchmarkAuditor", "CorpusScaleProbe", "BenchmarkFinding", "BenchmarkMetrics", "BenchmarkReport",
+    "BenchmarkStatus", "CorpusScaleReport", "QualityThresholds",
     "BuildIdentity", "canonical_json", "content_id",
     "CandidateAssertion", "CorpusChunk", "EntityMention", "EpistemicType", "EvidenceSpan",
     "MemoryClass", "ModelLineage", "TemporalAnchor", "TemporalPrecision",
