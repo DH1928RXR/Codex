@@ -44,6 +44,7 @@ from .semantic_model import (
     PredicateAlias,
     PredicateOntology,
     SemanticArgument,
+    SemanticArgumentIdentity,
     SemanticGroup,
     SemanticNormalizationResult,
     SemanticSignature,
@@ -63,6 +64,6 @@ __all__ = [
     "ResolutionDecision", "ResolutionEvidence", "ResolutionProposal", "EntityResolver",
     "ArgumentKind", "ArgumentResolutionDecision", "ArgumentRole", "NormalizationDiagnostic",
     "NormalizedAssertion", "Polarity", "PredicateAlias", "PredicateOntology", "SemanticArgument",
-    "SemanticGroup", "SemanticNormalizationResult", "SemanticSignature", "SemanticNormalizer",
-    "normalize_semantic_text",
+    "SemanticArgumentIdentity", "SemanticGroup", "SemanticNormalizationResult", "SemanticSignature",
+    "SemanticNormalizer", "normalize_semantic_text",
 ]
