@@ -2,10 +2,14 @@
 
 Deterministic, provenance-bound compiler pipeline that transforms the existing EOR PersonalCorpus into staged semantic memory without granting extraction models canonical write authority.
 
+This workstream is the **K Track**. The C Track is reserved for Persistent Controller Closure.
+
 ## Current implementation
 
-- **C00 — Corpus IR v0**: typed atomic candidate assertions, exact evidence spans, temporal anchors, entity mentions, model lineage, content-derived identities.
-- **C01 — Extraction compiler v0**: backend-neutral extraction boundary with deterministic input/build/output identities and post-extraction provenance validation.
+- **K00 — Corpus IR v0**: typed atomic candidate assertions, exact evidence spans, temporal anchors, entity mentions, model lineage, content-derived identities.
+- **K01 — Extraction compiler v0**: backend-neutral extraction boundary with deterministic input/build/output identities and post-extraction provenance validation.
+- **K02 — Candidate validator / quarantine v0**: independently validates evidence containment and quarantines provenance-invalid candidates.
+- **K03 — Entity mention compiler v0**: builds deterministic mention indexes without prematurely merging entity identities.
 
 The compiler is designed to bridge the existing `personal_corpus_v04.duckdb` corpus to the existing M02 personal-memory staging/promotion machinery. Extractors emit staging IR only; later passes perform entity resolution, normalization, temporal/supersession compilation, contradiction handling, synthesis, review routing, and M02 bundle construction.
 
@@ -22,17 +26,17 @@ The compiler is designed to bridge the existing `personal_corpus_v04.duckdb` cor
 
 ## Roadmap
 
-- C00 Corpus IR — implemented v0.1
-- C01 Candidate extraction — implemented deterministic shell v0.1
-- C02 Candidate validator / quarantine
-- C03 Entity mention compiler
-- C04 Entity resolution
-- C05 Claim / decision / goal normalization
-- C06 Relation compiler
-- C07 Temporal / supersession compiler
-- C08 Contradiction compiler
-- C09 Entity/project/concept synthesis
-- C10 Review router / adjudicator
-- C11 IR → M02 staging adapter
-- C12 Incremental scheduler / dependency graph
-- C13 Full-corpus benchmark and promotion run
+- K00 Corpus IR — implemented v0.1
+- K01 Candidate extraction — implemented deterministic shell v0.1
+- K02 Candidate validator / quarantine — implemented v0.1
+- K03 Entity mention compiler — implemented v0.1
+- K04 Entity resolution
+- K05 Claim / decision / goal normalization
+- K06 Relation compiler
+- K07 Temporal / supersession compiler
+- K08 Contradiction compiler
+- K09 Entity/project/concept synthesis
+- K10 Review router / adjudicator
+- K11 IR → M02 staging adapter
+- K12 Incremental scheduler / dependency graph
+- K13 Full-corpus benchmark and promotion run
