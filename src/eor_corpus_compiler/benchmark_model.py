@@ -101,6 +101,8 @@ class CorpusScaleReport:
     wave_count: int
     map_task_count: int
     global_task_count: int
+    single_change_run_task_count: int
+    single_change_reuse_task_count: int
 
     @property
     def scale_report_id(self) -> str:
