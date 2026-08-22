@@ -1,4 +1,4 @@
-"""EOR Corpus Compiler K00-K10 primitives."""
+"""EOR Corpus Compiler K00-K11 primitives."""
 
 from .build import BuildIdentity, canonical_json, content_id
 from .conflict_model import (
@@ -40,6 +40,19 @@ from .ir import (
     ModelLineage,
     TemporalAnchor,
     TemporalPrecision,
+)
+from .m02_adapter import M02StagingAdapter
+from .m02_adapter_model import (
+    M02AdapterDiagnostic,
+    M02CandidateDisposition,
+    M02CapabilityDescriptor,
+    M02Eligibility,
+    M02EvidenceInput,
+    M02PreparationResult,
+    M02RecordInput,
+    M02RelationInput,
+    M02StagingArtifact,
+    VerifiedM02StagingBackend,
 )
 from .mentions import EntityMentionCompiler, MentionBucket, MentionIndex, MentionKey, MentionOccurrence
 from .normalizer import SemanticNormalizer, normalize_semantic_text
@@ -134,4 +147,7 @@ __all__ = [
     "AdjudicationDisposition", "AdjudicationRecord", "AdjudicationResult", "ReviewAuthority",
     "ReviewDecision", "ReviewItem", "ReviewKind", "ReviewPolicy", "ReviewQueue", "ReviewResponse",
     "ReviewRouter", "ReviewAdjudicator",
+    "M02AdapterDiagnostic", "M02CandidateDisposition", "M02CapabilityDescriptor", "M02Eligibility",
+    "M02EvidenceInput", "M02PreparationResult", "M02RecordInput", "M02RelationInput",
+    "M02StagingArtifact", "VerifiedM02StagingBackend", "M02StagingAdapter",
 ]
