@@ -1,6 +1,16 @@
-"""EOR Corpus Compiler K00-K07 primitives."""
+"""EOR Corpus Compiler K00-K08 primitives."""
 
 from .build import BuildIdentity, canonical_json, content_id
+from .conflict_model import (
+    ConflictCase,
+    ConflictCompilationResult,
+    ConflictDiagnostic,
+    ConflictDisposition,
+    ConflictKind,
+    ConflictPolicy,
+    EffectiveRelation,
+)
+from .conflicts import ConflictCompiler, compare_effective_anchors, effective_interval
 from .entity_model import (
     EntityAlias,
     EntityHypothesis,
@@ -96,4 +106,6 @@ __all__ = [
     "Chronology", "CompiledSupersession", "StateSlotKey", "SupersessionDisposition",
     "SupersessionEvidence", "SupersessionProposal", "TemporalCompilationResult", "TemporalDiagnostic",
     "TemporalOccurrence", "TemporalPolicy", "TemporalStateSlot", "TemporalCompiler", "compare_source_times",
+    "ConflictCase", "ConflictCompilationResult", "ConflictDiagnostic", "ConflictDisposition", "ConflictKind",
+    "ConflictPolicy", "EffectiveRelation", "ConflictCompiler", "compare_effective_anchors", "effective_interval",
 ]
