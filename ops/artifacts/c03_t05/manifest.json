@@ -1,0 +1,47 @@
+{
+  "schema_version": "eor.c03.t05_observed_genesis_transport.v1",
+  "status": "FROZEN_READY_FOR_TARGET_HOST",
+  "carrier": {
+    "path": "ops/artifacts/c03_t05/eor_c03_t05_observed_genesis_v1.pyz",
+    "size_bytes": 46064,
+    "sha256": "14adc592cea2e7c11c462a2b09acab0d1420a0ec1ba174c03d11cb7b7f446cab",
+    "git_blob_sha1": "c4f2ae9def5e6166abadc0141f0f290fbc436881",
+    "deterministic_two_builds_byte_identical": true,
+    "self_test": "PASS: C01 PRODUCTION_VALIDATED; first COMMITTED; exact replay ALREADY_COMMITTED; one commit only; dispatch_reachable=false; external_effect_performed=false"
+  },
+  "checkpoint": {
+    "checkpoint_id": "cckpv1_ea0bb79355175857e21398c31a11dc40d537a850bbce7662bf3b9a22999df54f",
+    "content_sha256": "2cae83d840a67b9f04cfce74faf4efa8d1733c526ce1bc4e90f73e327873a41f",
+    "sequence": 0,
+    "phase": "OBSERVED",
+    "effect_state": "NOT_STARTED",
+    "replay_disposition": "DO_NOT_REPLAY",
+    "next_decision": "NONE",
+    "state_snapshot_sha256": "040215e1a5beb3e7d567c3b48cd854af49bd797c0cc57548bc07661bfab0364a"
+  },
+  "state_snapshot": {
+    "drive_id": "1LrvdiPRYELUUBndSYX2PIfTHlw1XJU85GtslI8r2toQ",
+    "revision_id": "AIroW35cclDzcYnEdp5fDny8NDzBveDJXe5wBIMVoy3v4-t8s3W3wl6cmKKTaEHR_sDkh72dnjF6OqWC8WQQsMZKJw-1HU2zz1oLUtN-F4c",
+    "sha256": "040215e1a5beb3e7d567c3b48cd854af49bd797c0cc57548bc07661bfab0364a"
+  },
+  "current_frontier_snapshot": {
+    "drive_id": "1VyuneUJBr6CPSvI9S4CG7A7H8CJMJa5KeTixs48--NU",
+    "revision_id": "AIroW369j_dv9KPuMVw--zjrRoyv42y24DCxR7ITI0hHwuzexuaTbi3goxdAhyYVj6dz-LIqAr731zbkK7He01UlIqbdp7Tt7qKb01JwPUg",
+    "sha256": "27ff28166e0428492aa5f9297cffc763a4090d94d17a07fc552e4e395a4fcd24",
+    "w30_binding_sha256": "e1b2db245b1e568ddde61a2441a7c08d7e955b85be17b140eaced83661988a75",
+    "w17_binding_sha256": "4595ab622cd760b27a3593b5fb6bbac36f8185a3a6085da394039502775369a7"
+  },
+  "w56p": {
+    "installed_path": "/usr/local/lib/eor_c_checkpoint_persistence_v1.py",
+    "installed_source_sha256": "bacea23b868dcc6b089691421d9943c210777c9814f328ea8d121ce3234ef3be",
+    "fixed_root": "/opt/eor/state/eor_controller_v1",
+    "qualification_receipt_sha256": "4f1911ba6f48ae60874ac36c314e8be0e40d89eca87632995aa44e89c43b351f",
+    "independent_observation_sha256": "5f735466bceca2d17cbc4aa613f21ddbbae0b6be6341e57af896407c64090b3f"
+  },
+  "c01": {
+    "validator_sha256": "7da432fabd99e52b764fd4fe959b9f3f66a29de24d8694b56cafbdb289d4b4b3",
+    "contract_raw_sha256": "21cd144624081fc53b625d07a1c479684fef76d5ba4122e11bf804ce8840007b",
+    "checkpoint_validation_status": "PRODUCTION_VALIDATED"
+  },
+  "authority_boundary": "One fixed OBSERVED C checkpoint persistence only. No task selection, invocation, dispatch, model, network, service, W30 effect, W56r effect verification, or continuation authority is present in the carrier."
+}
