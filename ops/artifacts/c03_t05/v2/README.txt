@@ -1,0 +1,1 @@
+Transport v2 is in progress. Do not execute until a terminal pinned commit is published with exact four-chunk reconstruction and SHA verification.
