@@ -48,7 +48,7 @@ OUT="/tmp/eor_w56p_target_host_qualification_$(date -u +%Y%m%dT%H%M%SZ).log"
   /usr/bin/python3 -B "$QUAL"
   echo
   echo "=== independent observer ==="
-  /usr/bin/python3 -B "$OBS"
+  /usr/bin/sudo /usr/bin/python3 -B "$OBS"
   echo
   echo "=== W56p target-host qualification complete $(date -Is) ==="
 ) 2>&1 | tee "$OUT"
