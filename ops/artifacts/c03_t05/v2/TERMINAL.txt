@@ -1,0 +1,12 @@
+C03/T05 OBSERVED genesis transport v2 terminal.
+Frozen decoded carrier size: 46064
+Frozen decoded carrier SHA256: 14adc592cea2e7c11c462a2b09acab0d1420a0ec1ba174c03d11cb7b7f446cab
+Frozen concatenated base64 SHA256: 1ee0a4b586529df62f74b62d03eeb848fc9616f78d010f0ad85c4ea866a2a02a
+Chunk Git blob identities:
+00 7b0b492b112cd821121e81ddc6e00a5bdc221ec3
+01 337dd446bb1127d5765d2b9dcd57fb5715f83289
+02 e9ca74bfe51875134decf9f22e9673fb7a2f1543
+03 6a246bc4678f38e36fb710ffc7cdb5562ba451fa
+Runner Git blob: ceb4d01c958262388ba11fbba453bde372495189
+Runner SHA256: 9609ccee7109f4d210364e7ea0f0cfc8578996784d12dac4a9fff7cebf287111
+The earlier direct binary Git object at commit 04391d588de26475e6a4b912dedb007bec959b2b is superseded for transport only. Carrier semantics and decoded bytes are unchanged.
