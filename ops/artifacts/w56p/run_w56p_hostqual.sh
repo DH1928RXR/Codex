@@ -13,12 +13,12 @@ TMP="$(mktemp -d /tmp/eor_w56p_transport.XXXXXX)"
 cleanup() { rm -rf "$TMP"; }
 trap cleanup EXIT
 
-for f in q00.b64 q01.b64 q02.b64 q03a.b64 q03b.b64 q03c.b64 q03d.b64 o00.b64; do
+for f in q00.b64 q01.b64 q02.b64 q03a.b64 q03b1.b64 q03b2.b64 q03c.b64 q03d.b64 o00.b64; do
   curl -fLsS --retry 3 --connect-timeout 10 --max-time 60 "${BASE}/${f}" -o "${TMP}/${f}"
 done
 
 cat "${TMP}/q00.b64" "${TMP}/q01.b64" "${TMP}/q02.b64" \
-    "${TMP}/q03a.b64" "${TMP}/q03b.b64" "${TMP}/q03c.b64" "${TMP}/q03d.b64" \
+    "${TMP}/q03a.b64" "${TMP}/q03b1.b64" "${TMP}/q03b2.b64" "${TMP}/q03c.b64" "${TMP}/q03d.b64" \
     | base64 -d > "${TMP}/eor_w56p_host_qualification_v1.pyz.zip"
 base64 -d < "${TMP}/o00.b64" > "${TMP}/eor_w56p_host_qualification_observer_v1.pyz.zip"
 
