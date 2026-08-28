@@ -1,0 +1,1 @@
+Export-only coordination marker. Exact source/test/docs at Codex local commit a6519764c31d229625fc8a78f65658e90978652f already passed. Connected writer still needs the exact tested bytes. No implementation changes are authorized by this marker.
