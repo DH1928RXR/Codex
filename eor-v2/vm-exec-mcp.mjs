@@ -29,12 +29,13 @@
 
 import http from "node:http";
 import { execFile } from "node:child_process";
+import { randomUUID } from "node:crypto";
 
 const HOST = process.env.EOR_MCP_HOST || "127.0.0.1";
 const PORT = Number(process.env.EOR_MCP_PORT || "8787");
 
 const SERVER_NAME = "eor-v2-vm-exec";
-const SERVER_VERSION = "0.2.0";
+const SERVER_VERSION = "0.3.0";
 
 // Exact P1 proof surface. Do not silently broaden this list.
 const COMMANDS = new Map([
@@ -134,12 +135,12 @@ function toolDefinition() {
   };
 }
 
-function codexToolDefinition() {
+function codexRunToolDefinition() {
   return {
     name: "codex_run",
-    title: "Run Codex on the EOR VM",
+    title: "Start Codex on the EOR VM",
     description:
-      "Runs one bounded, non-interactive Codex task on the EOR VM and returns its terminal stdout, stderr, and exit code.",
+      "Starts one bounded, non-interactive Codex task on the EOR VM and returns immediately with a run_id. Use codex_read with that run_id to obtain the terminal result.",
     inputSchema: {
       type: "object",
       additionalProperties: false,
@@ -156,11 +157,49 @@ function codexToolDefinition() {
     outputSchema: {
       type: "object",
       additionalProperties: false,
-      required: ["stdout", "stderr", "exit_code"],
+      required: ["run_id", "status"],
       properties: {
+        run_id: { type: "string" },
+        status: { type: "string", enum: ["RUNNING"] },
+      },
+    },
+  };
+}
+
+function codexReadToolDefinition() {
+  return {
+    name: "codex_read",
+    title: "Read a Codex result from the EOR VM",
+    description:
+      "Reads the status and terminal stdout, stderr, and exit code for the current Codex run. Call again while status is RUNNING.",
+    inputSchema: {
+      type: "object",
+      additionalProperties: false,
+      required: ["run_id"],
+      properties: {
+        run_id: {
+          type: "string",
+          minLength: 1,
+          description: "The run_id returned by codex_run.",
+        },
+      },
+    },
+    outputSchema: {
+      type: "object",
+      additionalProperties: false,
+      required: ["run_id", "status", "stdout", "stderr", "exit_code"],
+      properties: {
+        run_id: { type: "string" },
+        status: {
+          type: "string",
+          enum: ["RUNNING", "SUCCEEDED", "FAILED", "TIMED_OUT"],
+        },
         stdout: { type: "string" },
         stderr: { type: "string" },
-        exit_code: { type: "integer" },
+        exit_code: {
+          type: "integer",
+          description: "-1 while running; otherwise the terminal process exit code.",
+        },
       },
     },
   };
@@ -207,42 +246,90 @@ function runBoundedCommand(command) {
   });
 }
 
-function runCodex(prompt) {
-  return new Promise((resolve) => {
-    execFile(
-      "/usr/bin/sudo",
-      [
-        "-u",
-        CODEX_USER,
-        "-H",
-        CODEX_BIN,
-        "exec",
-        "--ephemeral",
-        "--skip-git-repo-check",
-        prompt,
-      ],
-      {
-        cwd: CODEX_CWD,
-        encoding: "utf8",
-        timeout: 600_000,
-        maxBuffer: 10 * 1024 * 1024,
-        windowsHide: true,
-      },
-      (error, stdout, stderr) => {
-        let exitCode = 0;
-        if (error) {
-          if (typeof error.code === "number") exitCode = error.code;
-          else if (error.killed) exitCode = 124;
-          else exitCode = 1;
-        }
-        resolve({
-          ok: !error,
+let codexRunState = null;
+
+function startCodex(prompt) {
+  if (codexRunState?.status === "RUNNING") {
+    return {
+      ok: false,
+      run_id: codexRunState.run_id,
+      error: "A Codex run is already in progress. Read it before starting another.",
+    };
+  }
+
+  const run_id = randomUUID();
+  codexRunState = {
+    run_id,
+    status: "RUNNING",
+    stdout: "",
+    stderr: "",
+    exit_code: -1,
+  };
+
+  console.error(`codex_run ${run_id}: started`);
+
+  execFile(
+    "/usr/bin/sudo",
+    [
+      "-u",
+      CODEX_USER,
+      "-H",
+      CODEX_BIN,
+      "exec",
+      "--ephemeral",
+      "--skip-git-repo-check",
+      prompt,
+    ],
+    {
+      cwd: CODEX_CWD,
+      encoding: "utf8",
+      timeout: 600_000,
+      maxBuffer: 10 * 1024 * 1024,
+      windowsHide: true,
+    },
+    (error, stdout, stderr) => {
+      let exitCode = 0;
+      let status = "SUCCEEDED";
+
+      if (error) {
+        if (typeof error.code === "number") exitCode = error.code;
+        else if (error.killed) exitCode = 124;
+        else exitCode = 1;
+        status = error.killed ? "TIMED_OUT" : "FAILED";
+      }
+
+      if (codexRunState?.run_id === run_id) {
+        codexRunState = {
+          run_id,
+          status,
           stdout: stdout ?? "",
           stderr: stderr ?? "",
           exit_code: exitCode,
-        });
+        };
+      }
+
+      console.error(`codex_run ${run_id}: ${status} exit_code=${exitCode}`);
+    },
+  );
+
+  return { ok: true, run_id, status: "RUNNING" };
+}
+
+function readCodex(run_id) {
+  if (!codexRunState || codexRunState.run_id !== run_id) return null;
+  return { ...codexRunState };
+}
+
+function toolCallResult(id, structured, isError = false) {
+  return jsonRpcResult(id, {
+    content: [
+      {
+        type: "text",
+        text: JSON.stringify(structured),
       },
-    );
+    ],
+    structuredContent: structured,
+    isError,
   });
 }
 
@@ -274,20 +361,27 @@ async function handleRpc(message) {
 
   if (method === "tools/list") {
     return jsonRpcResult(id, {
-      tools: [toolDefinition(), codexToolDefinition()],
+      tools: [toolDefinition(), codexRunToolDefinition(), codexReadToolDefinition()],
     });
   }
 
   if (method === "tools/call") {
-    let result;
-
     if (params?.name === "vm_exec") {
       const command = params?.arguments?.command;
       if (typeof command !== "string") {
         return jsonRpcError(id, -32602, "vm_exec requires string argument: command");
       }
-      result = await runBoundedCommand(command);
-    } else if (params?.name === "codex_run") {
+
+      const result = await runBoundedCommand(command);
+      const structured = {
+        stdout: result.stdout,
+        stderr: result.stderr,
+        exit_code: result.exit_code,
+      };
+      return toolCallResult(id, structured, !result.ok);
+    }
+
+    if (params?.name === "codex_run") {
       const prompt = params?.arguments?.prompt;
       if (typeof prompt !== "string" || prompt.length === 0 || prompt.length > 20_000) {
         return jsonRpcError(
@@ -296,27 +390,43 @@ async function handleRpc(message) {
           "codex_run requires a non-empty prompt of at most 20000 characters",
         );
       }
-      result = await runCodex(prompt);
-    } else {
-      return jsonRpcError(id, -32602, "Unknown tool");
+
+      const started = startCodex(prompt);
+      if (!started.ok) {
+        return jsonRpcError(
+          id,
+          -32000,
+          `${started.error} Active run_id: ${started.run_id}`,
+        );
+      }
+
+      return toolCallResult(id, {
+        run_id: started.run_id,
+        status: started.status,
+      });
     }
 
-    const structured = {
-      stdout: result.stdout,
-      stderr: result.stderr,
-      exit_code: result.exit_code,
-    };
+    if (params?.name === "codex_read") {
+      const run_id = params?.arguments?.run_id;
+      if (typeof run_id !== "string" || run_id.length === 0) {
+        return jsonRpcError(id, -32602, "codex_read requires string argument: run_id");
+      }
 
-    return jsonRpcResult(id, {
-      content: [
-        {
-          type: "text",
-          text: JSON.stringify(structured),
-        },
-      ],
-      structuredContent: structured,
-      isError: !result.ok,
-    });
+      const result = readCodex(run_id);
+      if (!result) {
+        return jsonRpcError(id, -32602, "Unknown or expired Codex run_id");
+      }
+
+      return toolCallResult(id, {
+        run_id: result.run_id,
+        status: result.status,
+        stdout: result.stdout,
+        stderr: result.stderr,
+        exit_code: result.exit_code,
+      });
+    }
+
+    return jsonRpcError(id, -32602, "Unknown tool");
   }
 
   if (method === "notifications/initialized" || method.startsWith("notifications/")) {
