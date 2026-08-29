@@ -34,7 +34,7 @@ const HOST = process.env.EOR_MCP_HOST || "127.0.0.1";
 const PORT = Number(process.env.EOR_MCP_PORT || "8787");
 
 const SERVER_NAME = "eor-v2-vm-exec";
-const SERVER_VERSION = "0.1.0";
+const SERVER_VERSION = "0.2.0";
 
 // Exact P1 proof surface. Do not silently broaden this list.
 const COMMANDS = new Map([
@@ -44,6 +44,10 @@ const COMMANDS = new Map([
   ["uname -a", ["uname", ["-a"]]],
   ["echo EOR_ARC_VM_CONTROL", ["printf", ["EOR_ARC_VM_CONTROL\n"]]],
 ]);
+
+const CODEX_USER = "danhebb";
+const CODEX_BIN = "/home/danhebb/.local/bin/codex";
+const CODEX_CWD = "/home/danhebb";
 
 function jsonRpcResult(id, result) {
   return { jsonrpc: "2.0", id, result };
@@ -130,6 +134,38 @@ function toolDefinition() {
   };
 }
 
+function codexToolDefinition() {
+  return {
+    name: "codex_run",
+    title: "Run Codex on the EOR VM",
+    description:
+      "Runs one bounded, non-interactive Codex task on the EOR VM and returns its terminal stdout, stderr, and exit code.",
+    inputSchema: {
+      type: "object",
+      additionalProperties: false,
+      required: ["prompt"],
+      properties: {
+        prompt: {
+          type: "string",
+          minLength: 1,
+          maxLength: 20_000,
+          description: "Exact task prompt to give Codex.",
+        },
+      },
+    },
+    outputSchema: {
+      type: "object",
+      additionalProperties: false,
+      required: ["stdout", "stderr", "exit_code"],
+      properties: {
+        stdout: { type: "string" },
+        stderr: { type: "string" },
+        exit_code: { type: "integer" },
+      },
+    },
+  };
+}
+
 function runBoundedCommand(command) {
   return new Promise((resolve) => {
     const spec = COMMANDS.get(command);
@@ -171,6 +207,45 @@ function runBoundedCommand(command) {
   });
 }
 
+function runCodex(prompt) {
+  return new Promise((resolve) => {
+    execFile(
+      "/usr/bin/sudo",
+      [
+        "-u",
+        CODEX_USER,
+        "-H",
+        CODEX_BIN,
+        "exec",
+        "--ephemeral",
+        "--skip-git-repo-check",
+        prompt,
+      ],
+      {
+        cwd: CODEX_CWD,
+        encoding: "utf8",
+        timeout: 600_000,
+        maxBuffer: 10 * 1024 * 1024,
+        windowsHide: true,
+      },
+      (error, stdout, stderr) => {
+        let exitCode = 0;
+        if (error) {
+          if (typeof error.code === "number") exitCode = error.code;
+          else if (error.killed) exitCode = 124;
+          else exitCode = 1;
+        }
+        resolve({
+          ok: !error,
+          stdout: stdout ?? "",
+          stderr: stderr ?? "",
+          exit_code: exitCode,
+        });
+      },
+    );
+  });
+}
+
 async function handleRpc(message) {
   if (!message || message.jsonrpc !== "2.0" || typeof message.method !== "string") {
     return jsonRpcError(message?.id, -32600, "Invalid Request");
@@ -189,7 +264,7 @@ async function handleRpc(message) {
         version: SERVER_VERSION,
       },
       instructions:
-        "EOR v2 P1 proof server. Exposes one bounded vm_exec tool for VM identity/diagnostic acceptance only.",
+        "EOR v2 primitives server. Exposes bounded P1 VM diagnostics and direct non-interactive Codex execution.",
     });
   }
 
@@ -199,21 +274,32 @@ async function handleRpc(message) {
 
   if (method === "tools/list") {
     return jsonRpcResult(id, {
-      tools: [toolDefinition()],
+      tools: [toolDefinition(), codexToolDefinition()],
     });
   }
 
   if (method === "tools/call") {
-    if (params?.name !== "vm_exec") {
+    let result;
+
+    if (params?.name === "vm_exec") {
+      const command = params?.arguments?.command;
+      if (typeof command !== "string") {
+        return jsonRpcError(id, -32602, "vm_exec requires string argument: command");
+      }
+      result = await runBoundedCommand(command);
+    } else if (params?.name === "codex_run") {
+      const prompt = params?.arguments?.prompt;
+      if (typeof prompt !== "string" || prompt.length === 0 || prompt.length > 20_000) {
+        return jsonRpcError(
+          id,
+          -32602,
+          "codex_run requires a non-empty prompt of at most 20000 characters",
+        );
+      }
+      result = await runCodex(prompt);
+    } else {
       return jsonRpcError(id, -32602, "Unknown tool");
     }
-
-    const command = params?.arguments?.command;
-    if (typeof command !== "string") {
-      return jsonRpcError(id, -32602, "vm_exec requires string argument: command");
-    }
-
-    const result = await runBoundedCommand(command);
 
     const structured = {
       stdout: result.stdout,
