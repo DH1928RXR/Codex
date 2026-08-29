@@ -35,7 +35,7 @@ const HOST = process.env.EOR_MCP_HOST || "127.0.0.1";
 const PORT = Number(process.env.EOR_MCP_PORT || "8787");
 
 const SERVER_NAME = "eor-v2-vm-exec";
-const SERVER_VERSION = "0.3.0";
+const SERVER_VERSION = "0.3.1";
 
 // Exact P1 proof surface. Do not silently broaden this list.
 const COMMANDS = new Map([
@@ -268,7 +268,7 @@ function startCodex(prompt) {
 
   console.error(`codex_run ${run_id}: started`);
 
-  execFile(
+  const child = execFile(
     "/usr/bin/sudo",
     [
       "-u",
@@ -311,6 +311,10 @@ function startCodex(prompt) {
       console.error(`codex_run ${run_id}: ${status} exit_code=${exitCode}`);
     },
   );
+
+  // Codex reads non-interactive stdin for additional instructions. Close the
+  // pipe immediately so it can execute the prompt instead of waiting forever.
+  child.stdin.end();
 
   return { ok: true, run_id, status: "RUNNING" };
 }
