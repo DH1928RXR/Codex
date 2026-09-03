@@ -1,0 +1,20 @@
+{
+  "schema": "eor.gcp_ssh_browser.v1",
+  "project": "empire-of-the-real",
+  "zone": "northamerica-northeast2-c",
+  "instance": "eor-g000-supervisor",
+  "console_url": "https://console.cloud.google.com/compute/instances?project=empire-of-the-real",
+  "sentinel_command": "printf 'EOR_GCP_SSH_UI_OK\\n'",
+  "action_budget": {
+    "new_console_pages": 1,
+    "ssh_clicks": 1,
+    "terminal_submissions": 1,
+    "retries_after_ambiguous_effect": 0
+  },
+  "rules": [
+    "preserve_preexisting_browser_pages",
+    "require_exact_project_zone_instance_before_ssh",
+    "close_only_pages_created_by_this_recipe",
+    "do_not_read_browser_cookies_or_tokens"
+  ]
+}
