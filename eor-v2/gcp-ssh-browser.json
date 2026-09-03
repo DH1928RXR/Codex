@@ -3,7 +3,7 @@
   "project": "empire-of-the-real",
   "zone": "northamerica-northeast2-c",
   "instance": "eor-g000-supervisor",
-  "console_url": "https://console.cloud.google.com/compute/instances?project=empire-of-the-real",
+  "console_url": "https://console.cloud.google.com/compute/instancesDetail/zones/northamerica-northeast2-c/instances/eor-g000-supervisor?project=empire-of-the-real",
   "sentinel_command": "printf 'EOR_GCP_SSH_UI_OK\\n'",
   "action_budget": {
     "new_console_pages": 1,
