@@ -35,6 +35,15 @@ class BenchmarkAuditor:
     def _rate(numerator: int, denominator: int) -> float:
         return 0.0 if denominator == 0 else numerator / denominator
 
+    @staticmethod
+    def _unresolved_hypotheses_per_entity(
+        unresolved_hypotheses: int,
+        active_entities: int,
+    ) -> tuple[float, bool]:
+        if active_entities == 0:
+            return 0.0, unresolved_hypotheses == 0
+        return unresolved_hypotheses / active_entities, True
+
     def compile(
         self,
         validation: ValidationResult,
@@ -74,6 +83,9 @@ class BenchmarkAuditor:
             1 for hypothesis in entity_resolution.hypotheses
             if hypothesis.disposition != HypothesisDisposition.BLOCKED
         )
+        unresolved_hypotheses_per_entity, unresolved_hypothesis_rate_defined = (
+            self._unresolved_hypotheses_per_entity(unresolved_hypotheses, active_entities)
+        )
         missing_source_time = sum(1 for occurrence in temporal.occurrences if not occurrence.source_occurrence_times)
         terra = sum(1 for item in review_queue.items if item.route == ReviewAuthority.TERRA)
         sol = sum(1 for item in review_queue.items if item.route == ReviewAuthority.SOL)
@@ -89,7 +101,7 @@ class BenchmarkAuditor:
             self._rate(len(validation.quarantined), candidate_total),
             active_entities,
             unresolved_hypotheses,
-            self._rate(unresolved_hypotheses, active_entities),
+            unresolved_hypotheses_per_entity,
             len(normalized.groups),
             len(normalized.assertions),
             len(relations.relations),
@@ -111,12 +123,21 @@ class BenchmarkAuditor:
         )
 
         findings: list[BenchmarkFinding] = []
+        unresolved_limit = self.thresholds.max_unresolved_entity_hypotheses_per_entity
+        if unresolved_limit is not None and not unresolved_hypothesis_rate_defined:
+            findings.append(BenchmarkFinding(
+                "unresolved_entity_hypotheses_per_entity",
+                metrics.unresolved_entity_hypotheses_per_entity,
+                unresolved_limit,
+                "unresolved_entity_hypotheses_per_entity is undefined with zero active entities and positive unresolved hypotheses",
+            ))
+
         checks = (
             ("quarantine_rate", metrics.quarantine_rate, self.thresholds.max_quarantine_rate),
             (
                 "unresolved_entity_hypotheses_per_entity",
                 metrics.unresolved_entity_hypotheses_per_entity,
-                self.thresholds.max_unresolved_entity_hypotheses_per_entity,
+                unresolved_limit,
             ),
             ("missing_source_time_rate", metrics.missing_source_time_rate, self.thresholds.max_missing_source_time_rate),
             ("m02_block_rate", metrics.m02_block_rate, self.thresholds.max_m02_block_rate),
