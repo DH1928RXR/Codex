@@ -4,7 +4,15 @@ from eor_corpus_compiler.benchmark import BenchmarkAuditor, CorpusScaleProbe
 from eor_corpus_compiler.benchmark_model import BenchmarkStatus, QualityThresholds
 from eor_corpus_compiler.build import BuildIdentity
 from eor_corpus_compiler.conflict_model import ConflictCompilationResult
-from eor_corpus_compiler.entity_model import EntityRegistrySnapshot, EntityResolutionResult
+from eor_corpus_compiler.entity_model import (
+    EntityHypothesis,
+    EntityRecord,
+    EntityRegistrySnapshot,
+    EntityResolutionResult,
+    EntityStatus,
+    HypothesisDisposition,
+    ResolutionEvidence,
+)
 from eor_corpus_compiler.ir import (
     CandidateAssertion,
     EpistemicType,
@@ -54,6 +62,21 @@ def candidate():
     )
 
 
+def unresolved_hypothesis():
+    evidence = ResolutionEvidence("synthetic", "mention:test", 0.9, "synthetic unresolved identity")
+    return EntityHypothesis(
+        "mention:test",
+        "entity:candidate",
+        0.9,
+        (evidence,),
+        HypothesisDisposition.REVIEW_REQUIRED,
+    )
+
+
+def active_entity(entity_id: str):
+    return EntityRecord(entity_id, None, entity_id, (), f"mention:{entity_id}", EntityStatus.ACTIVE)
+
+
 def test_empty_audit_passes_when_no_threshold_is_violated():
     report = BenchmarkAuditor().compile(*empty_inputs())
     assert report.status == BenchmarkStatus.PASS
@@ -74,6 +97,49 @@ def test_configured_quality_thresholds_fail_closed():
     report = BenchmarkAuditor(thresholds=thresholds).compile(*inputs)
     assert report.status == BenchmarkStatus.FAIL
     assert {finding.metric for finding in report.findings} == {"quarantine_rate", "m02_block_rate", "dan_review_rate"}
+
+
+def test_positive_unresolved_hypotheses_fail_with_zero_active_entities():
+    inputs = list(empty_inputs())
+    inputs[1] = EntityResolutionResult(build(), EntityRegistrySnapshot(), (unresolved_hypothesis(),))
+    thresholds = QualityThresholds(max_unresolved_entity_hypotheses_per_entity=100.0)
+
+    report = BenchmarkAuditor(thresholds=thresholds).compile(*inputs)
+
+    assert report.metrics.active_entities == 0
+    assert report.metrics.unresolved_entity_hypotheses == 1
+    assert report.metrics.unresolved_entity_hypotheses_per_entity == 0.0
+    assert report.status == BenchmarkStatus.FAIL
+    assert len(report.findings) == 1
+    assert report.findings[0].metric == "unresolved_entity_hypotheses_per_entity"
+    assert "zero active entities" in report.findings[0].message
+
+
+def test_zero_unresolved_hypotheses_with_zero_active_entities_is_vacuous_pass():
+    thresholds = QualityThresholds(max_unresolved_entity_hypotheses_per_entity=0.0)
+
+    report = BenchmarkAuditor(thresholds=thresholds).compile(*empty_inputs())
+
+    assert report.metrics.active_entities == 0
+    assert report.metrics.unresolved_entity_hypotheses == 0
+    assert report.metrics.unresolved_entity_hypotheses_per_entity == 0.0
+    assert report.status == BenchmarkStatus.PASS
+    assert report.findings == ()
+
+
+def test_unresolved_hypothesis_rate_with_active_entities_is_unchanged():
+    registry = EntityRegistrySnapshot(entities=(active_entity("entity:one"), active_entity("entity:two")))
+    inputs = list(empty_inputs())
+    inputs[1] = EntityResolutionResult(build(), registry, (unresolved_hypothesis(),))
+    thresholds = QualityThresholds(max_unresolved_entity_hypotheses_per_entity=0.5)
+
+    report = BenchmarkAuditor(thresholds=thresholds).compile(*inputs)
+
+    assert report.metrics.active_entities == 2
+    assert report.metrics.unresolved_entity_hypotheses == 1
+    assert report.metrics.unresolved_entity_hypotheses_per_entity == 0.5
+    assert report.status == BenchmarkStatus.PASS
+    assert report.findings == ()
 
 
 def test_597_conversation_scale_shape_matches_reference_dag():
